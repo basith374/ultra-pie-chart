@@ -1,0 +1,22 @@
+.upc-arc.hov {
+    filter: url(#dropshadow);
+}
+
+.upc-con svg {
+    background: #efefef;
+}
+
+.upc-con text {
+    fill: #555;
+    text-anchor: start;
+}
+
+.upc-con text.out-lbl {
+    text-anchor: middle;
+}
+
+.upc-con polyline {
+    stroke: #999;
+    stroke-width: 1px;
+    fill: none;
+}

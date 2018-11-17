@@ -1,0 +1,120 @@
+import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
+import * as d3 from 'd3';
+import './ultrapiechart.css';
+
+var margin = {top:80, left: 80, right: 80, bottom: 80};
+var height = 400 - margin.top - margin.bottom;
+var width = 400 - margin.left - margin.right;
+var radius = width / 2;
+var innerRadius = 60;
+
+var BackCircle = () => {
+    let arc = d3.arc().innerRadius(innerRadius + 10).outerRadius(radius - 10);
+    let pie = d3.pie()([1]);
+    return <path fill="#777" d={arc(pie[0])}></path>
+}
+
+export default class UltraPieChart extends Component {
+    state = {
+        expanded: ''
+    }
+    constructor() {
+        super();
+        this.arc = d3.arc().innerRadius(innerRadius).outerRadius(radius);
+        this.outArc = d3.arc().innerRadius(radius + 5).outerRadius(radius + 10);
+        this.coverArc = d3.arc().innerRadius(innerRadius).outerRadius(radius + 5);
+        this.labelArc = d3.arc().innerRadius(radius * .7).outerRadius(radius * .8);
+        this.outLabelArc = d3.arc().innerRadius(radius + 50).outerRadius(radius + 50);
+        this.arcs = d3.pie().padAngle(.05).value(f => f.value);
+    }
+    pointArc(d) {
+        return d3.pie()
+            .startAngle(d.startAngle + .02)
+            .endAngle(d.endAngle - .02)
+            .value(f => f.value);
+    }
+    pointColors(domain) {
+        return d3.scaleOrdinal(d3.schemeAccent).domain(domain);
+    }
+    lineArc(type, d) {
+        if(type == 1) {
+            return d3.arc().innerRadius(radius + 10).outerRadius(radius + 10).centroid(d);
+        } else if(type == 2) {
+            return d3.arc().innerRadius(radius + 20).outerRadius(radius + 20).centroid(d);
+        } else if(type == 3) {
+            return d3.arc().innerRadius(radius + 20).outerRadius(radius + 20).centroid(d);
+        }
+    }
+    renderSvgContents() {
+        let data = this.props.data;
+        var color = d3.scaleOrdinal()
+            .domain(data.map(d => d.name))
+            .range(d3.quantize(t => d3.interpolateSpectral(t * .8 + .1), data.length).reverse());
+        let pieData = this.arcs(data);
+        return (
+            <svg height={height + margin.top + margin.bottom} width={width + margin.left + margin.right}>
+                <filter id="dropshadow" height="130%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                    <feOffset dx="0" dy="0" result="offsetblur"/>
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope="0.5"/>
+                    </feComponentTransfer>
+                    <feMerge> 
+                        <feMergeNode/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                <g transform={`translate(${margin.left + radius}, ${margin.top + radius})`} ref="g">
+                    <BackCircle />
+                    {pieData.map((d, i) => {
+                        let midAngle = (d) => {
+                            return d.startAngle + (d.endAngle - d.startAngle) / 2;
+                        }
+                        let polyLine = () => {
+                            let points = this.lineArc(2, d);
+                            // points[0] = radius * 1.2 * (midAngle(d) < Math.PI ? 1 : -1);
+                            points[0] = points[0] + (midAngle(d) < Math.PI ? 10 : -10);
+                            return <polyline key={`${d.data.name}-poly`} points={[this.lineArc(1, d), this.lineArc(2, d), points]}></polyline>
+                        }
+                        let textPos = () => {
+                            let hma = midAngle(d);
+                            let vma = d.startAngle + (d.endAngle - d.startAngle) / 2;
+                            let points = this.lineArc(3, d);
+                            points[1] = points[1] + (vma < Math.PI / 2 || vma > Math.PI + Math.PI / 2 ? -5 : 15);
+                            // points[0] = radius * .95 * (ma < Math.PI ? 1 : -1);
+                            let style = {};
+                            if(hma > Math.PI) {
+                                style.textAnchor = 'end';
+                            }
+                            return <text {...{style}} key={`${d.data.name}-text`} transform={`translate(${points})`}>{d.data.name}</text>
+                        }
+                        let onMouseOver = () => this.setState({expanded:d.data.name});
+                        let onMouseOut = () => this.setState({expanded:''});
+                        let hovered = this.state.expanded == d.data.name;
+                        let items = [
+                            <path className={'upc-arc' + (hovered ? ' hov' : '')} key={d.data.name} fill={color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
+                            <path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
+                            polyLine(),
+                            textPos()
+                            // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
+                        ];
+                        // if(hovered) items.push(<text key={`${d.data.name}-label`} className="out-lbl" transform={`translate(${this.outLabelArc.centroid(d)})`}>{d.data.name}</text>);
+                        let points = this.pointArc(d)(d.data.points);
+                        let pColor = this.pointColors(d.data.points.map(p => p.name));
+                        points.forEach(p => {
+                            if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
+                            items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
+                        });
+                        return <g key={i}>{items}</g>;
+                    })}
+                </g>
+            </svg>
+        )
+    }
+    render() {
+        return (
+            <div className="upc-con">{this.renderSvgContents()}</div>
+        )
+    }
+}
