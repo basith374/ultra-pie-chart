@@ -2,10 +2,6 @@
     filter: url(#dropshadow);
 }
 
-.upc-con svg {
-    background: #efefef;
-}
-
 .upc-con text.tt {
     fill: #777;
     text-anchor: start;
