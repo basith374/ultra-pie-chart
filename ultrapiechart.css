@@ -2,6 +2,12 @@
     filter: url(#dropshadow);
 }
 
+.upc-arc.clk {
+    filter: url(#dropshadow);
+    stroke: #fff;
+    stroke-width: 3px;
+}
+
 .upc-con text.tt {
     fill: #777;
     text-anchor: start;

@@ -20,6 +20,7 @@ export default class UltraPieChart extends Component {
         expanded: '',
         height: 0,
         width: 0,
+        focused: ''
     }
     constructor() {
         super();
@@ -28,7 +29,7 @@ export default class UltraPieChart extends Component {
         this.coverArc = d3.arc().innerRadius(innerRadius).outerRadius(radius + 5);
         this.labelArc = d3.arc().innerRadius(radius * .7).outerRadius(radius * .8);
         this.outLabelArc = d3.arc().innerRadius(radius + 50).outerRadius(radius + 50);
-        this.arcs = d3.pie().padAngle(.05).value(f => f.value);
+        this.arcs = d3.pie().padAngle(.025).value(f => f.value);
     }
     componentDidMount() {
         let el = ReactDOM.findDOMNode(this), pn = el.parentNode;
@@ -56,13 +57,22 @@ export default class UltraPieChart extends Component {
             return d3.arc().innerRadius(radius + 20).outerRadius(radius + 20).centroid(d);
         }
     }
+    clickOut = () => {
+        if(this.state.focused) {
+            this.setState({focused:''});
+            let config = this.props.config;
+            if(config.selected) config.selected(null);
+        }
+    }
     renderSvgContents() {
         let config = this.props.config;
         let data = config.data;
+        var _color = [['#78e0e3', '#50a8ac'], ['#f8b64c', '#cd8024'], ['#e4595e', '#b03f45'], ['#547fb6', '#3e5e8e']];
         var color = d3.scaleOrdinal(['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#e74c3c', '#95a5a6', '#34495e', '#f1c40f'])
             .domain(data.map(d => d.name));
         let pieData = this.arcs(data);
         let {height,width,radius,innerRadius} = this.state;
+        let clickOut = this.clickOut;
         return (
             <svg height={height + margin.top + margin.bottom} width={width + margin.left + margin.right}>
                 <filter id="dropshadow" height="130%">
@@ -76,7 +86,16 @@ export default class UltraPieChart extends Component {
                         <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
+                <defs>
+                    {_color.map((f, i) => {
+                        return <radialGradient key={i} id={`grad${i}`} cx="50%" cy="50%" r="50%" fx="50%" fy="50">
+                            <stop offset="0%" style={{stopColor:f[0]}}></stop>
+                            <stop offset="100%" style={{stopColor:f[1],stopOpacity:.9}}></stop>
+                        </radialGradient>
+                    })}
+                </defs>
                 <text x={(margin.left+width+margin.right)/2} y={(margin.top+height+margin.bottom)/2+5} textAnchor="middle">{config.name}</text>
+                <rect onClick={clickOut} width={width+margin.left+margin.right} height={height+margin.top+margin.bottom} fill="transparent"></rect>
                 <g transform={`translate(${(width / 2) + margin.left}, ${(height / 2) + margin.top})`} ref="g">
                     <BackCircle />
                     {pieData.map((d, i) => {
@@ -104,11 +123,15 @@ export default class UltraPieChart extends Component {
                         let onMouseOver = () => this.setState({expanded:d.data.name});
                         let onMouseOut = () => this.setState({expanded:''});
                         let onClick = () => {
-                            if(config.selected) config.selected({name:d.data.name});
+                            if(this.state.focused != d.data.name) {
+                                this.setState({focused:d.data.name});
+                                if(config.selected) config.selected(d.data);
+                            }
                         }
                         let hovered = this.state.expanded == d.data.name;
+                        let clicked = this.state.focused == d.data.name;
                         let items = [
-                            <path className={'upc-arc' + (hovered ? ' hov' : '')} key={d.data.name} fill={color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
+                            <path className={['upc-arc', hovered && 'hov', clicked && 'clk'].filter(f => f).join(' ')} key={d.data.name} fill={color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
                             <path {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
                             // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
                         ];
