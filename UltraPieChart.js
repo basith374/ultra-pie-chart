@@ -47,7 +47,8 @@ export default class UltraPieChart extends Component {
         }
     }
     renderSvgContents() {
-        let data = this.props.data;
+        let config = this.props.config;
+        let data = config.data;
         var color = d3.scaleOrdinal()
             .domain(data.map(d => d.name))
             .range(d3.quantize(t => d3.interpolateSpectral(t * .8 + .1), data.length).reverse());
@@ -65,19 +66,20 @@ export default class UltraPieChart extends Component {
                         <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
+                <text x={(margin.left+width+margin.right)/2} y={(margin.top+height+margin.bottom)/2+5} textAnchor="middle">{config.name}</text>
                 <g transform={`translate(${margin.left + radius}, ${margin.top + radius})`} ref="g">
                     <BackCircle />
                     {pieData.map((d, i) => {
                         let midAngle = (d) => {
                             return d.startAngle + (d.endAngle - d.startAngle) / 2;
                         }
-                        let polyLine = () => {
+                        let polyLine = (d) => {
                             let points = this.lineArc(2, d);
                             // points[0] = radius * 1.2 * (midAngle(d) < Math.PI ? 1 : -1);
                             points[0] = points[0] + (midAngle(d) < Math.PI ? 10 : -10);
                             return <polyline key={`${d.data.name}-poly`} points={[this.lineArc(1, d), this.lineArc(2, d), points]}></polyline>
                         }
-                        let textPos = () => {
+                        let textPos = (d) => {
                             let hma = midAngle(d);
                             let vma = d.startAngle + (d.endAngle - d.startAngle) / 2;
                             let points = this.lineArc(3, d);
@@ -87,22 +89,31 @@ export default class UltraPieChart extends Component {
                             if(hma > Math.PI) {
                                 style.textAnchor = 'end';
                             }
-                            return <text {...{style}} key={`${d.data.name}-text`} transform={`translate(${points})`}>{d.data.name}</text>
+                            return <text {...{style}} key={`${d.data.name}-text`} transform={`translate(${points})`} className="tt">{d.data.name}</text>
                         }
                         let onMouseOver = () => this.setState({expanded:d.data.name});
                         let onMouseOut = () => this.setState({expanded:''});
+                        let onClick = () => {
+                            if(config.selected) config.selected({name:d.data.name});
+                        }
                         let hovered = this.state.expanded == d.data.name;
                         let items = [
                             <path className={'upc-arc' + (hovered ? ' hov' : '')} key={d.data.name} fill={color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
-                            <path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
-                            polyLine(),
-                            textPos()
+                            <path {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
                             // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
                         ];
+                        if(!hovered) {
+                            items = items.concat([
+                                polyLine(d),
+                                textPos(d)
+                            ])
+                        }
                         // if(hovered) items.push(<text key={`${d.data.name}-label`} className="out-lbl" transform={`translate(${this.outLabelArc.centroid(d)})`}>{d.data.name}</text>);
                         let points = this.pointArc(d)(d.data.points);
                         let pColor = this.pointColors(d.data.points.map(p => p.name));
-                        points.forEach(p => {
+                        points.forEach((p, i) => {
+                            if(hovered) items.push(textPos(p));
+                            if(hovered) items.push(polyLine(p));
                             if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
                             items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
                         });

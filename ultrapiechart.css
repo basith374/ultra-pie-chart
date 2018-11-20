@@ -6,8 +6,8 @@
     background: #efefef;
 }
 
-.upc-con text {
-    fill: #555;
+.upc-con text.tt {
+    fill: #777;
     text-anchor: start;
 }
 
