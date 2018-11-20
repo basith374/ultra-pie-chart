@@ -33,8 +33,10 @@ export default class UltraPieChart extends Component {
     componentDidMount() {
         let el = ReactDOM.findDOMNode(this), pn = el.parentNode;
         let height = pn.offsetHeight - margin.top - margin.bottom,
-            width = pn.offsetWidth - margin.left - margin.right;
-        this.setState({height,width});
+            width = pn.offsetWidth - margin.left - margin.right,
+            radius = width / 2,
+            innerRadius = 50;
+        this.setState({height,width,radius,innerRadius});
     }
     pointArc(d) {
         return d3.pie()
@@ -57,10 +59,10 @@ export default class UltraPieChart extends Component {
     renderSvgContents() {
         let config = this.props.config;
         let data = config.data;
-        var color = d3.scaleOrdinal(d3.schemeCategory10)
+        var color = d3.scaleOrdinal(['#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#e67e22', '#e74c3c', '#95a5a6', '#34495e', '#f1c40f'])
             .domain(data.map(d => d.name));
         let pieData = this.arcs(data);
-        let {height,width} = this.state;
+        let {height,width,radius,innerRadius} = this.state;
         return (
             <svg height={height + margin.top + margin.bottom} width={width + margin.left + margin.right}>
                 <filter id="dropshadow" height="130%">
@@ -75,7 +77,7 @@ export default class UltraPieChart extends Component {
                     </feMerge>
                 </filter>
                 <text x={(margin.left+width+margin.right)/2} y={(margin.top+height+margin.bottom)/2+5} textAnchor="middle">{config.name}</text>
-                <g transform={`translate(${(width / 2) + margin.left}, ${margin.top + radius})`} ref="g">
+                <g transform={`translate(${(width / 2) + margin.left}, ${(height / 2) + margin.top})`} ref="g">
                     <BackCircle />
                     {pieData.map((d, i) => {
                         let midAngle = (d) => {
