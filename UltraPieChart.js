@@ -58,9 +58,9 @@ export default class UltraPieChart extends Component {
         }
     }
     clickOut = () => {
-        if(this.state.focused) {
+        let config = this.props.config;
+        if(!config.disableTrack && this.state.focused) {
             this.setState({focused:''});
-            let config = this.props.config;
             if(config.selected) config.selected(null);
         }
     }
@@ -123,7 +123,7 @@ export default class UltraPieChart extends Component {
                         let onMouseOver = () => this.setState({expanded:d.data.name});
                         let onMouseOut = () => this.setState({expanded:''});
                         let onClick = () => {
-                            if(this.state.focused != d.data.name) {
+                            if(!config.disableTrack && this.state.focused != d.data.name) {
                                 this.setState({focused:d.data.name});
                                 if(config.selected) config.selected(d.data);
                             }
