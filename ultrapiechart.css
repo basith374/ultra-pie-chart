@@ -1,3 +1,6 @@
+.upc-arc-cov {
+    cursor: pointer;
+}
 .upc-arc.hov {
     filter: url(#dropshadow);
 }
