@@ -110,7 +110,7 @@ export default class UltraPieChart extends Component {
                             <path {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
                             // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
                         ];
-                        if(!hovered) {
+                        if(false && !hovered) {
                             items = items.concat([
                                 polyLine(d),
                                 textPos(d)
@@ -121,8 +121,8 @@ export default class UltraPieChart extends Component {
                             let points = this.pointArc(d)(d.data.points);
                             let pColor = this.pointColors(d.data.points.map(p => p.name));
                             points.forEach((p, i) => {
-                                if(hovered) items.push(textPos(p));
-                                if(hovered) items.push(polyLine(p));
+                                // if(hovered) items.push(textPos(p));
+                                // if(hovered) items.push(polyLine(p));
                                 if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
                                 items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
                             });
