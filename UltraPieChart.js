@@ -43,7 +43,7 @@ export default class UltraPieChart extends Component {
             .value(f => f.value);
     }
     pointColors(domain) {
-        return d3.scaleOrdinal(d3.schemeAccent).domain(domain);
+        return d3.scaleOrdinal(d3.schemeCategory10).domain(domain);
     }
     lineArc(type, d) {
         if(type == 1) {
@@ -57,9 +57,8 @@ export default class UltraPieChart extends Component {
     renderSvgContents() {
         let config = this.props.config;
         let data = config.data;
-        var color = d3.scaleOrdinal()
-            .domain(data.map(d => d.name))
-            .range(d3.quantize(t => d3.interpolateSpectral(t * .8 + .1), data.length).reverse());
+        var color = d3.scaleOrdinal(d3.schemeCategory10)
+            .domain(data.map(d => d.name));
         let pieData = this.arcs(data);
         let {height,width} = this.state;
         return (
@@ -118,14 +117,16 @@ export default class UltraPieChart extends Component {
                             ])
                         }
                         // if(hovered) items.push(<text key={`${d.data.name}-label`} className="out-lbl" transform={`translate(${this.outLabelArc.centroid(d)})`}>{d.data.name}</text>);
-                        let points = this.pointArc(d)(d.data.points);
-                        let pColor = this.pointColors(d.data.points.map(p => p.name));
-                        points.forEach((p, i) => {
-                            if(hovered) items.push(textPos(p));
-                            if(hovered) items.push(polyLine(p));
-                            if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
-                            items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
-                        });
+                        if(d.data.points) {
+                            let points = this.pointArc(d)(d.data.points);
+                            let pColor = this.pointColors(d.data.points.map(p => p.name));
+                            points.forEach((p, i) => {
+                                if(hovered) items.push(textPos(p));
+                                if(hovered) items.push(polyLine(p));
+                                if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
+                                items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
+                            });
+                        }
                         return <g key={i}>{items}</g>;
                     })}
                 </g>
