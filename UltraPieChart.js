@@ -20,7 +20,8 @@ export default class UltraPieChart extends Component {
         expanded: '',
         height: 0,
         width: 0,
-        focused: ''
+        focused: '',
+        focusedC: '',
     }
     constructor() {
         super();
@@ -38,6 +39,11 @@ export default class UltraPieChart extends Component {
             radius = width / 2,
             innerRadius = 50;
         this.setState({height,width,radius,innerRadius});
+    }
+    componentWillReceiveProps(props) {
+        if(props.config != this.props.config) {
+            this.setState({focused:''});
+        }
     }
     pointArc(d) {
         return d3.pie()
@@ -60,7 +66,7 @@ export default class UltraPieChart extends Component {
     clickOut = () => {
         let config = this.props.config;
         if(!config.disableTrack && this.state.focused) {
-            this.setState({focused:''});
+            this.setState({focused:'',focusedC:''});
             if(config.selected) config.selected(null);
         }
     }
@@ -124,14 +130,14 @@ export default class UltraPieChart extends Component {
                         let onMouseOut = () => this.setState({expanded:''});
                         let onClick = () => {
                             if(!config.disableTrack && this.state.focused != d.data.name) {
-                                this.setState({focused:d.data.name});
+                                this.setState({focused:d.data.name,focusedC:''});
                                 if(config.selected) config.selected(d.data);
                             }
                         }
                         let hovered = this.state.expanded == d.data.name;
                         let clicked = this.state.focused == d.data.name;
                         let items = [
-                            <path className={['upc-arc', hovered && 'hov', clicked && 'clk'].filter(f => f).join(' ')} key={d.data.name} fill={color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
+                            <path className={['upc-arc', hovered && 'hov', clicked && 'clk'].filter(f => f).join(' ')} key={d.data.name} fill={d.data.color || color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
                             <path className="upc-arc-cov" {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
                             // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
                         ];
@@ -142,19 +148,49 @@ export default class UltraPieChart extends Component {
                             ])
                         }
                         // if(hovered) items.push(<text key={`${d.data.name}-label`} className="out-lbl" transform={`translate(${this.outLabelArc.centroid(d)})`}>{d.data.name}</text>);
-                        if(d.data.points) {
-                            let points = this.pointArc(d)(d.data.points);
-                            let pColor = this.pointColors(d.data.points.map(p => p.name));
-                            points.forEach((p, i) => {
-                                // if(hovered) items.push(textPos(p));
-                                // if(hovered) items.push(polyLine(p));
-                                if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
-                                items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
-                            });
-                        }
-                        return <g key={i}>{items}</g>;
+                        // if(d.data.points) {
+                        //     let points = this.pointArc(d)(d.data.points);
+                        //     let pColor = this.pointColors(d.data.points.map(p => p.name));
+                        //     points.forEach((p, i) => {
+                        //         // if(hovered) items.push(textPos(p));
+                        //         // if(hovered) items.push(polyLine(p));
+                        //         if(hovered) items.push(<path key={`${d.data.name}-${p.data.name}`} fill={pColor(p.data.name)} d={this.outArc(p)}></path>);
+                        //         items.push(<path {...{onMouseOver,onMouseOut}} key={`${d.data.name}-${p.data.name}-edge`} fill="transparent" d={this.outArc(p)}><title>{`${p.data.name} : ${p.data.value}`}</title></path>);
+                        //     });
+                        // }
+                        let content = [<g key={i + 'pie'}>{items}</g>];
+                        return content;
                     })}
                 </g>
+                {pieData.map((d, i) => {
+                    let hovered = d.data.name == this.state.focused;
+                    let content = [];
+                    if(d.data.points && hovered) {
+                        let linebar = [];
+                        linebar.lastY = margin.top;
+                        let points = d.data.points;
+                        let _width = width + margin.left + margin.right;
+                        let _height = height + margin.top + margin.bottom;
+                        let pSum = points.reduce((carry, p) => carry + p.value, 0);
+                        let dx = d3.scaleLinear().range([0, height]).domain([0, pSum]);
+                        let color = this.pointColors(points.map(f => f.name));
+                        for(let p in points) {
+                            let point = points[p];
+                            let y = linebar.lastY;
+                            let ph = dx(point.value);
+                            let onClick = () => {
+                                if(!config.disableTrack && this.state.focusedC != point.name) {
+                                    this.setState({focusedC:point.name});
+                                    if(config.selected) config.selected(point, true);
+                                }
+                            }
+                            linebar.push(<rect key={i+'points'+p} className={this.state.focusedC == point.name ? 'act' : null} onClick={onClick} fill={point.color || color(point.name)} width={20} height={ph} x={_width - 30} y={y}><title>{`${point.name} - ${point.value}`}</title></rect>);
+                            linebar.lastY = ph + linebar.lastY;
+                        }
+                        content.push(<g key={i+'linebar'} className="linebar">{linebar}</g>);
+                    }
+                    return content;
+                })}
             </svg>
         )
     }

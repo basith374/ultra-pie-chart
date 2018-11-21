@@ -25,3 +25,7 @@
     stroke-width: 1px;
     fill: none;
 }
+.linebar rect.act {
+    stroke: #fff;
+    stroke-width: 3px;
+}
