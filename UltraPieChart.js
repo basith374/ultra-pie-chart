@@ -137,8 +137,8 @@ export default class UltraPieChart extends Component {
                         let hovered = this.state.expanded == d.data.name;
                         let clicked = this.state.focused == d.data.name;
                         let items = [
-                            <path className={['upc-arc', hovered && 'hov', clicked && 'clk'].filter(f => f).join(' ')} key={d.data.name} fill={d.data.color || color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
-                            <path className="upc-arc-cov" {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
+                            <path className={['upc-arc', hovered && 'hov', clicked && 'clk'].filter(f => f).join(' ')} key={`${d.data.name}${i}`} fill={d.data.color || color(d.data.name)} d={this.arc(d)} opacity={.9}></path>,
+                            <path className="upc-arc-cov" {...{onMouseOver,onMouseOut,onClick}} key={`${d.data.name}${i}-cover`} fill="transparent" d={this.coverArc(d)}><title>{`${d.data.name} : ${d.data.value}`}</title></path>,
                             // <text key={`${d.data.name}-text`} transform={`translate(${this.labelArc.centroid(d)})`}>{d.data.name}</text>
                         ];
                         if(false && !hovered) {
