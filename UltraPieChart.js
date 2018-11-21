@@ -130,8 +130,8 @@ export default class UltraPieChart extends Component {
                         let onMouseOut = () => this.setState({expanded:''});
                         let onClick = () => {
                             if(!config.disableTrack && this.state.focused != d.data.name) {
-                                this.setState({focused:d.data.name,focusedC:''});
                                 if(config.selected) config.selected(d.data);
+                                setTimeout(() => this.setState({focused:d.data.name,focusedC:''}), 50);
                             }
                         }
                         let hovered = this.state.expanded == d.data.name;
