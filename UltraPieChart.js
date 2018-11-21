@@ -42,7 +42,7 @@ export default class UltraPieChart extends Component {
     }
     componentWillReceiveProps(props) {
         if(props.config != this.props.config) {
-            this.setState({focused:''});
+            // this.setState({focused:''});
         }
     }
     pointArc(d) {
