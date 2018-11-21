@@ -25,7 +25,13 @@
     stroke-width: 1px;
     fill: none;
 }
+.linebar rect {
+    cursor: pointer;
+}
 .linebar rect.act {
     stroke: #fff;
     stroke-width: 3px;
+}
+.ptcvr {
+    filter: url(#dropshadow);
 }

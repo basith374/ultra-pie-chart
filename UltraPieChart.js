@@ -162,6 +162,7 @@ export default class UltraPieChart extends Component {
                         return content;
                     })}
                 </g>
+                {this.state.focused && <rect className="ptcvr" width="20" height={height} x={width + margin.left + margin.right - 30} y={margin.top}></rect>}
                 {pieData.map((d, i) => {
                     let hovered = d.data.name == this.state.focused;
                     let content = [];
