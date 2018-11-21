@@ -182,7 +182,7 @@ export default class UltraPieChart extends Component {
                             let onClick = () => {
                                 if(!config.disableTrack && this.state.focusedC != point.name) {
                                     if(config.selected) config.selected(point, true);
-                                    setTimeout(() => this.setState({focusedC:point.name}), 50);
+                                    setTimeout(() => this.setState({focused:d.data.name,focusedC:point.name}), 50);
                                 }
                             }
                             linebar.push(<rect key={i+'points'+p} className={this.state.focusedC == point.name ? 'act' : null} onClick={onClick} fill={point.color || color(point.name)} width={20} height={ph} x={_width - 30} y={y}><title>{`${point.name} - ${point.value}`}</title></rect>);
