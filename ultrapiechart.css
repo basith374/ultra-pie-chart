@@ -21,6 +21,8 @@
     position: absolute;
     bottom: 0;
     padding: 0 10px 10px;
+    max-height: 70px;
+    overflow-y: scroll;
 }
 .upc-ftlt {
     font-size: 10px;
