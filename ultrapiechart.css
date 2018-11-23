@@ -11,6 +11,29 @@
     stroke-width: 3px;
 }
 
+.upc-con {
+    position: relative;
+}
+.upc-ftt {
+    display: inline-block;
+}
+.upc-ftl {
+    position: absolute;
+    bottom: 0;
+    padding: 0 10px 10px;
+}
+.upc-ftlt {
+    font-size: 10px;
+    margin-right: 5px;
+}
+.upc-ftll {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    vertical-align: middle;
+}
 .upc-con text.tt {
     fill: #777;
     text-anchor: start;
@@ -34,4 +57,9 @@
 }
 .ptcvr {
     filter: url(#dropshadow);
+}
+rect.pointer {
+    width: 1;
+    fill: #999;
+    pointer-events: none;
 }
