@@ -1,7 +1,7 @@
 .upc-arc-cov {
     cursor: pointer;
 }
-.upc-arc.hov {
+.upc-arc:hover {
     filter: url(#dropshadow);
 }
 
@@ -64,4 +64,15 @@ rect.pointer {
     width: 1;
     fill: #999;
     pointer-events: none;
+}
+.upc-ttx {
+    position: absolute;
+    pointer-events: none;
+    text-align: center;
+    background: #555;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+    padding: 2px;
+    font-size: 10px;
+    /* text-shadow: 0 0 10px rgba(0,0,0,.2); */
 }
