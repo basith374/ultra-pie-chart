@@ -24,7 +24,7 @@ export default class UltraPieChart extends Component {
     }
     constructor() {
         super();
-        this.arc = d3.arc().innerRadius(innerRadius).outerRadius(radius);
+        this.arc = d3.arc().innerRadius(innerRadius).outerRadius(radius).cornerRadius(3);
         this.outArc = d3.arc().innerRadius(radius + 5).outerRadius(radius + 10);
         this.coverArc = d3.arc().innerRadius(innerRadius).outerRadius(radius + 5);
         this.labelArc = d3.arc().innerRadius(radius * .7).outerRadius(radius * .8);
