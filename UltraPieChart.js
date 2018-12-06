@@ -15,6 +15,7 @@ export default class UltraPieChart extends Component {
         expanded: '',
         height: 0,
         width: 0,
+        margin: {},
         focused: '',
         focusedC: '',
     }
@@ -28,6 +29,17 @@ export default class UltraPieChart extends Component {
         this.arcs = d3.pie().padAngle(.025).value(f => f.value);
     }
     componentDidMount() {
+        let {radius, innerRadius} = this.resized();
+        this.arc.innerRadius(innerRadius).outerRadius(radius);
+        this.outArc.innerRadius(radius + 5).outerRadius(radius + 10);
+        this.coverArc.innerRadius(innerRadius).outerRadius(radius + 5);
+        this.outLabelArc.innerRadius(radius * .7).outerRadius(radius * .8);
+        window.addEventListener('resize', this.resized);
+    }
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.resized);
+    }
+    resized = () => {
         let el = ReactDOM.findDOMNode(this), pn = el.parentNode;
         let margin = {
             top: pn.offsetHeight * 20 / 100,
@@ -39,11 +51,8 @@ export default class UltraPieChart extends Component {
             width = pn.offsetWidth - margin.left - margin.right,
             radius = width / 2,
             innerRadius = width / 2 * .5;
-        this.arc.innerRadius(innerRadius).outerRadius(radius);
-        this.outArc.innerRadius(radius + 5).outerRadius(radius + 10);
-        this.coverArc.innerRadius(innerRadius).outerRadius(radius + 5);
-        this.outLabelArc.innerRadius(radius * .7).outerRadius(radius * .8);
         this.setState({height,width,radius,innerRadius,margin});
+        return {height, width, radius, innerRadius, margin};
     }
     pointArc(d) {
         return d3.pie()

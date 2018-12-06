@@ -13,6 +13,7 @@
 
 .upc-con {
     position: relative;
+    height: 100%;
 }
 .upc-ftt {
     display: inline-block;
