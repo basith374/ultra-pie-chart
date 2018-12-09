@@ -42,15 +42,17 @@ export default class UltraPieChart extends Component {
     resized = () => {
         let el = ReactDOM.findDOMNode(this), pn = el.parentNode;
         let margin = {
-            top: pn.offsetHeight * 20 / 100,
-            left: pn.offsetWidth * 20 / 100,
-            right: pn.offsetWidth * 20 / 100,
-            bottom: pn.offsetHeight * 30 / 100,
+            top: pn.offsetHeight * 10 / 100,
+            left: pn.offsetWidth * 10 / 100,
+            right: pn.offsetWidth * 10 / 100,
+            bottom: pn.offsetHeight * 10 / 100,
         }
-        let height = pn.offsetHeight - margin.top - margin.bottom,
-            width = pn.offsetWidth - margin.left - margin.right,
-            radius = width / 2,
-            innerRadius = width / 2 * .5;
+        let height = pn.offsetHeight,
+            width = pn.offsetWidth;
+        height = height - margin.top - margin.bottom - 50;
+        width = width - margin.left - margin.right;
+        let radius = Math.min(height / 2, width / 2),
+            innerRadius = radius * .5;
         this.setState({height,width,radius,innerRadius,margin});
         return {height, width, radius, innerRadius, margin};
     }
@@ -74,6 +76,32 @@ export default class UltraPieChart extends Component {
         let config = this.props.config;
         let {height,width,radius,innerRadius,margin} = this.state;
         let clickOut = this.clickOut;
+        let showTooltip = (show = true) => {
+            let el = ReactDOM.findDOMNode(this);
+            let tar = el.querySelector('.upc-ttx');
+            tar.style.display = show ? 'block' : 'none';
+        }
+        let changeTooltip = (text, x, y) => {
+            let el = ReactDOM.findDOMNode(this);
+            let rect = el.getBoundingClientRect();
+            let offset = {
+                top: rect.top + document.body.scrollTop,
+                left: rect.left + document.body.scrollLeft,
+            }
+            x -= offset.left;
+            y -= offset.top;
+            let tar = el.querySelector('.upc-ttx');
+            tar.innerText = text;
+            tar.style.top = y + 'px';
+            let w = width + margin.left + margin.right;
+            if(x > w / 2) {
+                tar.style.right = (w - (x - 15))  + 'px';
+                tar.style.left = 'auto';
+            } else {
+                tar.style.left = (x + 15) + 'px';
+                tar.style.right = 'auto';
+            }
+        }
         return (
             <svg height={height + margin.top + margin.bottom} width={width + margin.left + margin.right}>
                 <filter id="dropshadow" height="130%">
@@ -94,35 +122,15 @@ export default class UltraPieChart extends Component {
                     {pieData.map((d, i) => {
                         let onMouseOver = (e) => {
                             this.setState({expanded:d.data.name});
-                            let el = ReactDOM.findDOMNode(this);
-                            let tar = el.querySelector('.upc-ttx');
-                            tar.style.display = 'block';
+                            showTooltip();
                         }
                         let onMouseOut = () => {
                             this.setState({expanded:''});
-                            let el = ReactDOM.findDOMNode(this);
-                            let tar = el.querySelector('.upc-ttx');
-                            tar.style.display = 'none';
+                            showTooltip(false);
                         };
                         let onMouseMove = e => {
-                            let el = ReactDOM.findDOMNode(this);
-                            let rect = el.getBoundingClientRect();
-                            let ptop = rect.top + document.body.scrollTop;
-                            let pleft = rect.left + document.body.scrollLeft;
-                            let x = e.clientX - pleft;
-                            let y = e.clientY - ptop;
-                            let tar = el.querySelector('.upc-ttx');
-                            tar.innerText = d.data.name + ' : ' + d.data.value;
-                            tar.style.top = y + 'px';
-                            let w = width + margin.left + margin.right;
-                            let h = height + margin.top + margin.bottom;
-                            if(x > w / 2) {
-                                tar.style.right = (w - (x - 15))  + 'px';
-                                tar.style.left = 'auto';
-                            } else {
-                                tar.style.left = (x + 15) + 'px';
-                                tar.style.right = 'auto';
-                            }
+                            let text = d.data.name + ' : ' + d.data.value
+                            changeTooltip(text, e.clientX, e.clientY);
                         }
                         let onClick = () => {
                             if(!config.disableTrack && this.state.focused != d.data.name) {
@@ -163,7 +171,21 @@ export default class UltraPieChart extends Component {
                                     setTimeout(() => this.setState({focused:d.data.name,focusedC:point.name}), 50);
                                 }
                             }
-                            linebar.push(<rect key={i+'points'+p} className={this.state.focusedC == point.name ? 'act' : null} onClick={onClick} fill={point.color || color(point.name)} width={20} height={ph} x={_width - 30} y={y}><title>{`${point.name} - ${point.value}`}</title></rect>);
+                            let onMouseOver = () => showTooltip();
+                            let onMouseMove = (e) => {
+                                let text = point.name + ' : ' + point.value;
+                                changeTooltip(text, e.clientX, e.clientY);
+                            }
+                            let onMouseOut = () => showTooltip(false);
+                            let rect = <rect key={i+'points'+p}
+                                className={this.state.focusedC == point.name ? 'act' : null}
+                                {...{onClick, onMouseOver, onMouseMove, onMouseOut}}
+                                fill={point.color || color(point.name)}
+                                width={20}
+                                height={ph}
+                                x={_width - 30}
+                                y={y}></rect>;
+                            linebar.push(rect);
                             linebar.lastY = ph + linebar.lastY;
                         }
                         content.push(<g key={i+'linebar'} className="linebar">{linebar}</g>);
