@@ -49,7 +49,7 @@ export default class UltraPieChart extends Component {
         }
         let height = pn.offsetHeight,
             width = pn.offsetWidth;
-        height = height - margin.top - margin.bottom - 50;
+        height = height - margin.top - margin.bottom - 70;
         width = width - margin.left - margin.right;
         let radius = Math.min(height / 2, width / 2),
             innerRadius = radius * .5;
